@@ -1,4 +1,4 @@
-package buttsbot
+package buttifier
 
 import (
 	"math/rand"

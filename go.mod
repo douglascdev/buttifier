@@ -1,4 +1,4 @@
-module buttsbot
+module buttifier
 
 go 1.22.5
 

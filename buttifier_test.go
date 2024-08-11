@@ -1,7 +1,7 @@
-package buttsbot_test
+package buttifier_test
 
 import (
-	"buttsbot"
+	"buttifier"
 	"math/rand"
 	"testing"
 )
@@ -9,7 +9,7 @@ import (
 func TestButtify(t *testing.T) {
 	rand.New(rand.NewSource(42))
 
-	b, err := buttsbot.New()
+	b, err := buttifier.New()
 	if err != nil {
 		t.Fatal(err)
 	}
