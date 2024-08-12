@@ -19,10 +19,10 @@ func (DefaultRandSource) Uint64() uint64 {
 }
 
 type Buttifier struct {
-	buttWord                 string
 	hyphenator               *hyphenation.Lang
-	buttificationProbability float64
-	buttificationRate        float64
+	ButtWord                 string
+	ButtificationProbability float64
+	ButtificationRate        float64
 	RandSource               rand.Source
 }
 
@@ -32,29 +32,10 @@ func New() (*Buttifier, error) {
 		return nil, err
 	}
 	return &Buttifier{
-		buttWord:                 "butt",
+		ButtWord:                 "butt",
 		hyphenator:               hyph,
-		buttificationProbability: 0.1,
-		buttificationRate:        0.3,
-		RandSource:               DefaultRandSource{},
-	}, nil
-}
-
-func NewWithCustomButt(
-	buttWord string,
-	hyphenationFile string,
-	buttificationProbability float64,
-	buttificationRate float64,
-) (*Buttifier, error) {
-	hyph, err := newHyphenator("hyph-en-us.pat.txt")
-	if err != nil {
-		return nil, err
-	}
-	return &Buttifier{
-		buttWord:                 buttWord,
-		hyphenator:               hyph,
-		buttificationProbability: buttificationProbability,
-		buttificationRate:        buttificationRate,
+		ButtificationProbability: 0.1,
+		ButtificationRate:        0.3,
 		RandSource:               DefaultRandSource{},
 	}, nil
 }
@@ -78,8 +59,8 @@ func (b *Buttifier) ButtifyWord(word string) (string, int) {
 	buttCount := 0
 	for _, breakPoint := range breakpoints {
 		rn := rand.New(b.RandSource).Float64()
-		if rn < b.buttificationRate {
-			wordBuffer.WriteString(b.buttWord)
+		if rn < b.ButtificationRate {
+			wordBuffer.WriteString(b.ButtWord)
 			buttCount++
 		} else {
 			wordBuffer.WriteString(word[prev:breakPoint])
@@ -94,7 +75,7 @@ func (b *Buttifier) ButtifyWord(word string) (string, int) {
 // returns the buttified word and true if the word was changed
 func (b *Buttifier) ButtifySentence(sentence string) (string, bool) {
 	rn := rand.New(b.RandSource).Float64()
-	toButtOrNotToButt := rn < b.buttificationProbability
+	toButtOrNotToButt := rn < b.ButtificationProbability
 
 	if !toButtOrNotToButt {
 		return sentence, false
