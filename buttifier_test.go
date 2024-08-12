@@ -2,18 +2,23 @@ package buttifier_test
 
 import (
 	"buttifier"
-	"math/rand"
 	"testing"
 )
 
-func TestButtify(t *testing.T) {
-	rand.New(rand.NewSource(42))
+type UnitTestRandSource struct{}
 
+func (UnitTestRandSource) Uint64() uint64 {
+	return 0
+}
+
+func TestButtify(t *testing.T) {
 	b, err := buttifier.New()
+	b.RandSource = UnitTestRandSource{}
 	if err != nil {
 		t.Fatal(err)
 	}
-	if b.Buttify("Contributor") != "Conbuttutor" {
-		t.Errorf("Expected %s, got %s", "Conbuttutor", b.Buttify("Contributor"))
+	expected, actual := "buttbuttbutt", b.Buttify("successful")
+	if expected != actual {
+		t.Errorf("expected %s, got %s", expected, actual)
 	}
 }

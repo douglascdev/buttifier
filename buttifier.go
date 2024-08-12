@@ -1,18 +1,29 @@
 package buttifier
 
 import (
-	"math/rand"
+	"bytes"
+	"math/rand/v2"
 	"os"
 
 	"github.com/speedata/hyphenation"
 )
+
+/*
+implements rand.Source
+replaced in unit tests to pass a custom random seed
+*/
+type DefaultRandSource struct{}
+
+func (DefaultRandSource) Uint64() uint64 {
+	return rand.Uint64()
+}
 
 type Buttifier struct {
 	buttWord                 string
 	hyphenator               *hyphenation.Lang
 	buttificationProbability float64
 	buttificationRate        float64
-	rand                     *rand.Rand
+	RandSource               rand.Source
 }
 
 func New() (*Buttifier, error) {
@@ -20,15 +31,32 @@ func New() (*Buttifier, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Buttifier{buttWord: "butt", hyphenator: hyph, buttificationProbability: 0.1, buttificationRate: 0.3, rand: rand.New(rand.SourNewSource(seed))}, nil
+	return &Buttifier{
+		buttWord:                 "butt",
+		hyphenator:               hyph,
+		buttificationProbability: 0.1,
+		buttificationRate:        0.3,
+		RandSource:               DefaultRandSource{},
+	}, nil
 }
 
-func NewWithCustomButt(buttWord string, hyphenationFile string, buttificationProbability float64, buttificationRate float64) (*Buttifier, error) {
+func NewWithCustomButt(
+	buttWord string,
+	hyphenationFile string,
+	buttificationProbability float64,
+	buttificationRate float64,
+) (*Buttifier, error) {
 	hyph, err := newHyphenator("hyph-en-us.pat.txt")
 	if err != nil {
 		return nil, err
 	}
-	return &Buttifier{buttWord: buttWord, hyphenator: hyph}, nil
+	return &Buttifier{
+		buttWord:                 buttWord,
+		hyphenator:               hyph,
+		buttificationProbability: buttificationProbability,
+		buttificationRate:        buttificationRate,
+		RandSource:               DefaultRandSource{},
+	}, nil
 }
 
 func newHyphenator(hyphenationFile string) (*hyphenation.Lang, error) {
@@ -39,19 +67,22 @@ func newHyphenator(hyphenationFile string) (*hyphenation.Lang, error) {
 	return hyphenation.New(r)
 }
 
+// replace random syllables with buttWord and return the result
 func (b *Buttifier) Buttify(word string) string {
 	breakpoints := b.hyphenator.Hyphenate(word)
-	for i, breakPoint := range breakpoints {
-		if rand.Float64() < b.buttificationRate {
-			start := 0
-			if i > 0 {
-				start = breakpoints[i-1]
-			} else {
-				start = 0
-			}
-			word = word[0:start] + b.buttWord + word[breakPoint:]
+	// Hyphenate doesn't return the last syllable as a breakpoint so we add it
+	breakpoints = append(breakpoints, len(word))
+	var wordBuffer bytes.Buffer
+	prev := 0
+	for _, breakPoint := range breakpoints {
+		rn := rand.New(b.RandSource).Float64()
+		if rn < b.buttificationRate {
+			wordBuffer.WriteString(b.buttWord)
+		} else {
+			wordBuffer.WriteString(word[prev:breakPoint])
 		}
+		prev = breakPoint
 	}
 
-	return word
+	return wordBuffer.String()
 }
