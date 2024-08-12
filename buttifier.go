@@ -1,9 +1,9 @@
 package buttifier
 
 import (
-	"bytes"
 	"math/rand/v2"
 	"os"
+	"strings"
 
 	"github.com/speedata/hyphenation"
 )
@@ -72,7 +72,7 @@ func (b *Buttifier) Buttify(word string) string {
 	breakpoints := b.hyphenator.Hyphenate(word)
 	// Hyphenate doesn't return the last syllable as a breakpoint so we add it
 	breakpoints = append(breakpoints, len(word))
-	var wordBuffer bytes.Buffer
+	var wordBuffer strings.Builder
 	prev := 0
 	for _, breakPoint := range breakpoints {
 		rn := rand.New(b.RandSource).Float64()
