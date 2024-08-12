@@ -17,8 +17,14 @@ func TestButtify(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected, actual := "buttbuttbutt", b.Buttify("successful")
-	if expected != actual {
-		t.Errorf("expected %s, got %s", expected, actual)
+	resultMap := map[string]string{
+		"successful": "buttbuttbutt",
+		"someone":    "buttbutt",
+	}
+	for word, expected := range resultMap {
+		actual := b.Buttify(word)
+		if expected != actual {
+			t.Errorf("expected %s, got %s", expected, actual)
+		}
 	}
 }
