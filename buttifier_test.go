@@ -1,8 +1,9 @@
 package buttifier_test
 
 import (
-	"buttifier"
 	"testing"
+
+	"github.com/douglascdev/buttifier"
 )
 
 type UnitTestRandSource struct{}

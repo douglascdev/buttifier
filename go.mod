@@ -1,4 +1,4 @@
-module buttifier
+module github.com/douglascdev/buttifier
 
 go 1.22.5
 
