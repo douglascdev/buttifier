@@ -3,6 +3,7 @@ package buttifier
 import (
 	"math/rand/v2"
 	"strings"
+	"unicode"
 
 	"github.com/speedata/hyphenation"
 )
@@ -49,9 +50,13 @@ func (b *Buttifier) ButtifyWord(word string) (string, int) {
 	prev := 0
 	buttCount := 0
 	for _, breakPoint := range breakpoints {
+		// random float between 0 and 1
 		rn := rand.New(b.RandSource).Float64()
+		currentSyllable := word[prev:breakPoint]
 		if rn < b.ButtificationRate {
-			wordBuffer.WriteString(b.ButtWord)
+			// normalize buttWord's case to match currentSyllable's case
+			buttifiedSyllable := normalizeCase(currentSyllable, b.ButtWord)
+			wordBuffer.WriteString(buttifiedSyllable)
 			buttCount++
 		} else {
 			wordBuffer.WriteString(word[prev:breakPoint])
@@ -82,4 +87,36 @@ func (b *Buttifier) ButtifySentence(sentence string) (string, bool) {
 		}
 	}
 	return strings.Join(words, " "), changed
+}
+
+// tries to normalize buttWord's case to match currentSyllable's case
+// ("SOMeone", "buttbutt") -> "BUTtbutt"
+// ("SOMEone", "buttbutt") -> "BUTTbutt"
+func normalizeCase(currentSyllable string, buttWord string) string {
+	buttifiedSyllable := strings.Split(buttWord, "")
+
+	if len(currentSyllable) < len(buttWord) {
+		isAllUpperCase := true
+		for i := 0; i < len(currentSyllable); i++ {
+			if !unicode.IsUpper(rune(currentSyllable[i])) {
+				isAllUpperCase = false
+				break
+			}
+		}
+		if isAllUpperCase {
+			return strings.ToUpper(strings.Join(buttifiedSyllable, ""))
+		}
+	}
+
+	// copies case character by character
+	for i := 0; i < min(len(buttWord), len(currentSyllable)); i++ {
+		letterIsUpperCase := unicode.IsUpper(rune(currentSyllable[i]))
+		if letterIsUpperCase {
+			buttifiedSyllable[i] = strings.ToUpper(buttifiedSyllable[i])
+		} else {
+			buttifiedSyllable[i] = strings.ToLower(buttifiedSyllable[i])
+		}
+	}
+
+	return strings.Join(buttifiedSyllable, "")
 }
