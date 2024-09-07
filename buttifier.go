@@ -27,7 +27,7 @@ type Buttifier struct {
 }
 
 func New() (*Buttifier, error) {
-	hyph, err := newHyphenator("hyph-en-us.pat.txt")
+	hyph, err := hyphenation.New(strings.NewReader(HyphenatorData))
 	if err != nil {
 		return nil, err
 	}

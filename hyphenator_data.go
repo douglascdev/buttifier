@@ -1,3 +1,6 @@
+package buttifier
+
+const HyphenatorData = `
 .ach4
 .ad4der
 .af1t
@@ -4935,4 +4938,4 @@ y1stro
 yes5ter1y
 z3ian.
 z3o1phr
-z2z3w
+z2z3w`
