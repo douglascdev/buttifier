@@ -2,7 +2,6 @@ package buttifier
 
 import (
 	"math/rand/v2"
-	"os"
 	"strings"
 
 	"github.com/speedata/hyphenation"
@@ -38,14 +37,6 @@ func New() (*Buttifier, error) {
 		ButtificationRate:        0.3,
 		RandSource:               DefaultRandSource{},
 	}, nil
-}
-
-func newHyphenator(hyphenationFile string) (*hyphenation.Lang, error) {
-	r, err := os.Open(hyphenationFile)
-	if err != nil {
-		return nil, err
-	}
-	return hyphenation.New(r)
 }
 
 // replace random syllables with buttWord
