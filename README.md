@@ -4,7 +4,7 @@ Replace syllables with `butt`(default) or a custom word. Made for a twitch bot.
 ## Installation
 
 ```bash
-go get https://github.com/douglascdev/buttifier
+go get github.com/douglascdev/buttifier
 ```
 
 ## Usage
