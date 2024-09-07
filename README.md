@@ -1,4 +1,9 @@
 # buttifier
+
+<p align="center">
+  <img src="https://cdn.7tv.app/emote/664d082bba453b48ddc926a2/4x.gif" alt="butt" />
+</p>
+
 Replace syllables with `butt`(default) or a custom word. Made for a twitch bot.
 
 ## Installation
@@ -21,7 +26,7 @@ func main() {
 	buttifier.ButtificationProbability = 0.5
 	// buttify about 30% of the syllables
 	buttifier.ButtificationRate = 0.3
-  // what each buttified syllable should be replaced with
+	// what each buttified syllable should be replaced with
 	buttifier.ButtWord = "butt"
 
 	if err != nil {
@@ -29,9 +34,9 @@ func main() {
 	}
 	newSentence, didButtify := buttifier.ButtifySentence("Someone did that something something")
 	if didButtify {
-	  // Someone butt that something something
-    println(newSentence)
-    return 
+		// Someone butt that something something
+		println(newSentence)
+		return
 	}
 	println("Did not buttify sentence")
 }
