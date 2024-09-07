@@ -34,7 +34,7 @@ func New() (*Buttifier, error) {
 	return &Buttifier{
 		ButtWord:                 "butt",
 		hyphenator:               hyph,
-		ButtificationProbability: 0.1,
+		ButtificationProbability: 0.05,
 		ButtificationRate:        0.3,
 		RandSource:               DefaultRandSource{},
 	}, nil
