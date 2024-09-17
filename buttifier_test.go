@@ -57,6 +57,7 @@ func TestButtifyWordKeepsCase(t *testing.T) {
 		"SOmeone":    "BUttbutt",
 		"SOMeone":    "BUTtbutt",
 		"SOMEone":    "BUTTbutt",
+		"asd":        "butt",
 	}
 	for word, expected := range resultMap {
 		actual, _ := b.ButtifyWord(word, b.hyphenateWord(word))

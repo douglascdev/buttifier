@@ -71,15 +71,19 @@ func (b *Buttifier) ButtifyWord(word string, breakpoints []int) (string, int) {
 }
 
 func (b *Buttifier) hyphenateWord(word string) []int {
-	// Hyphenate doesn't return the last syllable as a breakpoint so we add it
-	return append(b.hyphenator.Hyphenate(word), len(word)-1)
+	res := b.hyphenator.Hyphenate(word)
+	if len(res) > 0 && res[len(res)-1] != len(word)-1 {
+		// might not have the last syllable as a breakpoint so we add it
+		res = append(res, len(word)-1)
+	}
+
+	return res
 }
 
 func (b *Buttifier) hyphenateSentence(sentence string) []*hyphenatedWord {
 	words := strings.Split(sentence, " ")
 	var result []*hyphenatedWord
 	for _, word := range words {
-		// Hyphenate doesn't return the last syllable as a breakpoint so we add it
 		breakpoints := b.hyphenateWord(word)
 
 		w := hyphenatedWord{
