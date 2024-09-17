@@ -1,7 +1,9 @@
 package buttifier
 
 import (
+	"fmt"
 	"math/rand/v2"
+	"slices"
 	"strings"
 	"unicode"
 
@@ -26,6 +28,11 @@ type Buttifier struct {
 	RandSource               rand.Source
 }
 
+type hyphenatedWord struct {
+	Word        string
+	Breakpoints []int
+}
+
 func New() (*Buttifier, error) {
 	hyph, err := hyphenation.New(strings.NewReader(HyphenatorData))
 	if err != nil {
@@ -42,10 +49,7 @@ func New() (*Buttifier, error) {
 
 // replace random syllables with buttWord
 // returns the buttified word and the number of buttified syllables
-func (b *Buttifier) ButtifyWord(word string) (string, int) {
-	breakpoints := b.hyphenator.Hyphenate(word)
-	// Hyphenate doesn't return the last syllable as a breakpoint so we add it
-	breakpoints = append(breakpoints, len(word))
+func (b *Buttifier) ButtifyWord(word string, breakpoints []int) (string, int) {
 	var wordBuffer strings.Builder
 	prev := 0
 	buttCount := 0
@@ -67,26 +71,70 @@ func (b *Buttifier) ButtifyWord(word string) (string, int) {
 	return wordBuffer.String(), buttCount
 }
 
+func (b *Buttifier) hyphenateWord(word string) []int {
+	// Hyphenate doesn't return the last syllable as a breakpoint so we add it
+	return append(b.hyphenator.Hyphenate(word), len(word)-1)
+}
+
+func (b *Buttifier) hyphenateSentence(sentence string) []*hyphenatedWord {
+	words := strings.Split(sentence, " ")
+	var result []*hyphenatedWord
+	for _, word := range words {
+		// Hyphenate doesn't return the last syllable as a breakpoint so we add it
+		breakpoints := b.hyphenateWord(word)
+
+		w := hyphenatedWord{
+			Word:        word,
+			Breakpoints: breakpoints,
+		}
+		result = append(result, &w)
+	}
+	return result
+}
+
 // replace random syllables from each word with buttWord
 // returns the buttified word and true if the word was changed
-func (b *Buttifier) ButtifySentence(sentence string) (string, bool) {
-	rn := rand.New(b.RandSource).Float64()
-	toButtOrNotToButt := rn < b.ButtificationProbability
+func (b *Buttifier) ButtifySentence(sentence string) string {
+	hyphenatedSentence := b.hyphenateSentence(sentence)
+	buttifiedSyllables := 0
+	totalSyllables := func() int {
+		count := 0
+		for _, hyphenatedWord := range hyphenatedSentence {
+			count += len(hyphenatedWord.Breakpoints)
+		}
+		return count
+	}()
 
-	if !toButtOrNotToButt {
-		return sentence, false
+	reachedButtificationRate := func() bool {
+		return (float64(buttifiedSyllables) / float64(totalSyllables)) >= b.ButtificationRate
 	}
 
-	words := strings.Split(sentence, " ")
-	changed := false
-	for i := range words {
-		buttifiedWord, count := b.ButtifyWord(words[i])
-		if count > 0 {
-			words[i] = buttifiedWord
-			changed = true
+	unbuttifiedWords := hyphenatedSentence
+	for !reachedButtificationRate() {
+		randomWordIdx := rand.New(b.RandSource).Int() % len(unbuttifiedWords)
+
+		println(fmt.Sprintf("%d, %d", randomWordIdx, len(unbuttifiedWords)))
+
+		buttifiedWord, buttCount := b.ButtifyWord(unbuttifiedWords[randomWordIdx].Word, unbuttifiedWords[randomWordIdx].Breakpoints)
+		if buttCount > 0 {
+			unbuttifiedWords[randomWordIdx].Word = buttifiedWord
+			buttifiedSyllables += buttCount
+			// remove the word we just buttified from the slice
+			unbuttifiedWords = slices.Delete(unbuttifiedWords, randomWordIdx, randomWordIdx)
 		}
 	}
-	return strings.Join(words, " "), changed
+
+	result := []string{}
+	for _, hyphenatedWord := range hyphenatedSentence {
+		result = append(result, hyphenatedWord.Word)
+	}
+
+	return strings.Join(result, " ")
+}
+
+func (b *Buttifier) ToButtOrNotToButt() bool {
+	rn := rand.New(b.RandSource).Float64()
+	return rn < b.ButtificationProbability
 }
 
 // tries to normalize buttWord's case to match currentSyllable's case
