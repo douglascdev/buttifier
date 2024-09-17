@@ -1,7 +1,6 @@
 package buttifier
 
 import (
-	"fmt"
 	"math/rand/v2"
 	"slices"
 	"strings"
@@ -112,8 +111,6 @@ func (b *Buttifier) ButtifySentence(sentence string) string {
 	unbuttifiedWords := hyphenatedSentence
 	for !reachedButtificationRate() {
 		randomWordIdx := rand.New(b.RandSource).Int() % len(unbuttifiedWords)
-
-		println(fmt.Sprintf("%d, %d", randomWordIdx, len(unbuttifiedWords)))
 
 		buttifiedWord, buttCount := b.ButtifyWord(unbuttifiedWords[randomWordIdx].Word, unbuttifiedWords[randomWordIdx].Breakpoints)
 		if buttCount > 0 {
