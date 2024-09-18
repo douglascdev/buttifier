@@ -113,7 +113,7 @@ func (b *Buttifier) ButtifySentence(sentence string) string {
 	}
 
 	unbuttifiedWords := hyphenatedSentence
-	for !reachedButtificationRate() {
+	for !reachedButtificationRate() && len(unbuttifiedWords) > 1 {
 		randomWordIdx := rand.New(b.RandSource).Int() % len(unbuttifiedWords)
 
 		buttifiedWord, buttCount := b.ButtifyWord(unbuttifiedWords[randomWordIdx].Word, unbuttifiedWords[randomWordIdx].Breakpoints)
