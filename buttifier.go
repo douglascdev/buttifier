@@ -27,9 +27,16 @@ type Buttifier struct {
 	RandSource               rand.Source
 }
 
+type syllable struct {
+	Letters  string
+	IdxStart int
+	IdxEnd   int
+}
+
 type hyphenatedWord struct {
 	Word        string
 	Breakpoints []int
+	Syllables   []*syllable
 }
 
 func New() (*Buttifier, error) {
@@ -48,49 +55,67 @@ func New() (*Buttifier, error) {
 
 // replace random syllables with buttWord
 // returns the buttified word and the number of buttified syllables
-func (b *Buttifier) ButtifyWord(word string, breakpoints []int) (string, int) {
+func (b *Buttifier) ButtifyWord(word string) (string, int) {
+	if word == "" {
+		return "", 0
+	}
+
 	var wordBuffer strings.Builder
-	prev := 0
 	buttCount := 0
-	for _, breakPoint := range breakpoints {
+
+	for _, hyphenatedSyllable := range b.HyphenateWord(word).Syllables {
 		// random float between 0 and 1
 		rn := rand.New(b.RandSource).Float64()
-		currentSyllable := word[prev:breakPoint]
 		if rn < b.ButtificationRate {
 			// normalize buttWord's case to match currentSyllable's case
-			buttifiedSyllable := normalizeCase(currentSyllable, b.ButtWord)
+			buttifiedSyllable := normalizeCase(hyphenatedSyllable.Letters, b.ButtWord)
 			wordBuffer.WriteString(buttifiedSyllable)
 			buttCount++
 		} else {
-			wordBuffer.WriteString(word[prev:breakPoint])
+			wordBuffer.WriteString(hyphenatedSyllable.Letters)
 		}
-		prev = breakPoint
 	}
 
 	return wordBuffer.String(), buttCount
 }
 
-func (b *Buttifier) hyphenateWord(word string) []int {
-	res := b.hyphenator.Hyphenate(word)
-	if len(res) > 0 && res[len(res)-1] != len(word)-1 {
-		// might not have the last syllable as a breakpoint so we add it
-		res = append(res, len(word)-1)
+func (b *Buttifier) HyphenateWord(word string) *hyphenatedWord {
+	breakpoints := b.hyphenator.Hyphenate(word)
+
+	if len(breakpoints) == 0 {
+		// some words like "partne" return an empty slice, so we need to add a breakpoint
+		breakpoints = []int{len(word)}
+	} else if len(breakpoints) == 1 && breakpoints[0] == len(word)-1 {
+		// words like "asd" return []int{2}, resulting in "as" instead of "asd"
+		breakpoints[0] += 1
+	} else if breakpoints[len(breakpoints)-1] != len(word) {
+		// words with a single breakpoint like "partner" return []int{4}, resulting in "part" instead of "partner"
+		breakpoints = append(breakpoints, len(word))
 	}
 
-	return res
+	var syllables []*syllable
+	idxStart := 0
+	for _, breakpoint := range breakpoints {
+		syllables = append(syllables, &syllable{
+			Letters:  word[idxStart:breakpoint],
+			IdxStart: idxStart,
+			IdxEnd:   breakpoint,
+		})
+		idxStart = breakpoint
+	}
+
+	return &hyphenatedWord{
+		Word:        word,
+		Breakpoints: breakpoints,
+		Syllables:   syllables,
+	}
 }
 
-func (b *Buttifier) hyphenateSentence(sentence string) []*hyphenatedWord {
+func (b *Buttifier) HyphenateSentence(sentence string) []*hyphenatedWord {
 	words := strings.Split(sentence, " ")
 	var result []*hyphenatedWord
 	for _, word := range words {
-		breakpoints := b.hyphenateWord(word)
-
-		w := hyphenatedWord{
-			Word:        word,
-			Breakpoints: breakpoints,
-		}
-		result = append(result, &w)
+		result = append(result, b.HyphenateWord(word))
 	}
 	return result
 }
@@ -98,7 +123,7 @@ func (b *Buttifier) hyphenateSentence(sentence string) []*hyphenatedWord {
 // replace random syllables from each word with buttWord
 // returns the buttified word and true if the word was changed
 func (b *Buttifier) ButtifySentence(sentence string) string {
-	hyphenatedSentence := b.hyphenateSentence(sentence)
+	hyphenatedSentence := b.HyphenateSentence(sentence)
 	buttifiedSyllables := 0
 	totalSyllables := func() int {
 		count := 0
@@ -116,7 +141,7 @@ func (b *Buttifier) ButtifySentence(sentence string) string {
 	for !reachedButtificationRate() && len(unbuttifiedWords) > 1 {
 		randomWordIdx := rand.New(b.RandSource).Int() % len(unbuttifiedWords)
 
-		buttifiedWord, buttCount := b.ButtifyWord(unbuttifiedWords[randomWordIdx].Word, unbuttifiedWords[randomWordIdx].Breakpoints)
+		buttifiedWord, buttCount := b.ButtifyWord(unbuttifiedWords[randomWordIdx].Word)
 		if buttCount > 0 {
 			unbuttifiedWords[randomWordIdx].Word = buttifiedWord
 			buttifiedSyllables += buttCount
