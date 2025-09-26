@@ -39,8 +39,22 @@ type hyphenatedWord struct {
 	Syllables   []*syllable
 }
 
-func New() (*Buttifier, error) {
-	hyph, err := hyphenation.New(strings.NewReader(HyphenatorData))
+type SupportedLang int
+
+const (
+	English SupportedLang = iota
+	Portuguese
+)
+
+var langToHyphenatorDataKey = map[SupportedLang]string{
+	English:    "en",
+	Portuguese: "pt",
+}
+
+func New(lang SupportedLang) (*Buttifier, error) {
+	key, _ := langToHyphenatorDataKey[lang]
+	data, _ := HyphenatorData[key]
+	hyph, err := hyphenation.New(strings.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
