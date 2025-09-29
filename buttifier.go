@@ -7,6 +7,9 @@ import (
 	"unicode"
 
 	"github.com/speedata/hyphenation"
+	"golang.org/x/text/runes"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 )
 
 /*
@@ -94,8 +97,9 @@ func (b *Buttifier) ButtifyWord(word string) (string, int) {
 }
 
 func (b *Buttifier) HyphenateWord(word string) *hyphenatedWord {
-	breakpoints := b.hyphenator.Hyphenate(word)
+	word = normalizeDiacritics(word)
 
+	breakpoints := b.hyphenator.Hyphenate(word)
 	if len(breakpoints) == 0 {
 		// some words like "partne" return an empty slice, so we need to add a breakpoint
 		breakpoints = []int{len(word)}
@@ -177,34 +181,30 @@ func (b *Buttifier) ToButtOrNotToButt() bool {
 	return rn < b.ButtificationProbability
 }
 
-// tries to normalize buttWord's case to match currentSyllable's case
-// ("SOMeone", "buttbutt") -> "BUTtbutt"
-// ("SOMEone", "buttbutt") -> "BUTTbutt"
+func isUpper(s string) bool {
+	for _, r := range s {
+		if !unicode.IsUpper(r) {
+			return false
+		}
+	}
+	return true
+}
+
+// return uppercase buttWord if the whole syllable is uppercase
 func normalizeCase(currentSyllable string, buttWord string) string {
-	buttifiedSyllable := strings.Split(buttWord, "")
-
-	if len(currentSyllable) < len(buttWord) {
-		isAllUpperCase := true
-		for i := 0; i < len(currentSyllable); i++ {
-			if !unicode.IsUpper(rune(currentSyllable[i])) {
-				isAllUpperCase = false
-				break
-			}
-		}
-		if isAllUpperCase {
-			return strings.ToUpper(strings.Join(buttifiedSyllable, ""))
-		}
+	if isUpper(currentSyllable) {
+		return strings.ToUpper(buttWord)
 	}
 
-	// copies case character by character
-	for i := 0; i < min(len(buttWord), len(currentSyllable)); i++ {
-		letterIsUpperCase := unicode.IsUpper(rune(currentSyllable[i]))
-		if letterIsUpperCase {
-			buttifiedSyllable[i] = strings.ToUpper(buttifiedSyllable[i])
-		} else {
-			buttifiedSyllable[i] = strings.ToLower(buttifiedSyllable[i])
-		}
+	return buttWord
+}
+
+func normalizeDiacritics(s string) string {
+	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
+	result, _, err := transform.String(t, s)
+	if err != nil {
+		return s
 	}
 
-	return strings.Join(buttifiedSyllable, "")
+	return result
 }

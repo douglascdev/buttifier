@@ -1,2 +1,4 @@
 github.com/speedata/hyphenation v1.0.2 h1:2rDCtAqNfbf+E56SsqbmNApsVx9CH+4fwIh1RZuu3B8=
 github.com/speedata/hyphenation v1.0.2/go.mod h1:vwrKKvBvJWFll0sVZw99hyWS/+r4YlMI7MAYjnje0nM=
+golang.org/x/text v0.29.0 h1:1neNs90w9YzJ9BocxfsQNHKuAT4pkghyXc4nhZ6sJvk=
+golang.org/x/text v0.29.0/go.mod h1:7MhJOA9CD2qZyOKYazxdYMF85OwPdEr9jTtBpO7ydH4=

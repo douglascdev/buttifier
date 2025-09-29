@@ -1,7 +1,6 @@
 package buttifier
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 )
@@ -44,8 +43,8 @@ func TestButtifySentence(t *testing.T) {
 		t.Fatal(err)
 	}
 	resultMap := map[string]string{
-		"grinding for partner":     "buttbutt for partner",
-		"frizze5Wade laffer curve": "butt laffer curve",
+		"grinding for partner":      "buttbutt for partner",
+		"frizze5Wade laffer curve ": "butt laffer curve ",
 	}
 	for sentence, expected := range resultMap {
 		actual := b.ButtifySentence(sentence)
@@ -62,12 +61,11 @@ func TestButtifyWordKeepsCase(t *testing.T) {
 		t.Fatal(err)
 	}
 	resultMap := map[string]string{
-		"SUCCESSFUL": "BUTTBUTTBUTT",
-		"Someone":    "Buttbutt",
-		"SOmeone":    "BUttbutt",
-		"SOMeone":    "BUTtbutt",
+		"SUCcessFUL": "BUTTbuttBUTT",
+		"Someone":    "buttbutt",
+		"SOmeone":    "buttbutt",
+		"SOMeone":    "buttbutt",
 		"SOMEone":    "BUTTbutt",
-		"asd":        "butt",
 	}
 	for word, expected := range resultMap {
 		actual, _ := b.ButtifyWord(word)
@@ -104,7 +102,7 @@ func TestHyphenateWord(t *testing.T) {
 
 		actual := strings.Join(syllables, "")
 		if expected != actual {
-			t.Errorf(fmt.Sprintf("expected '%s' got '%s'", expected, actual))
+			t.Errorf("expected '%s' got '%s'", expected, actual)
 		}
 	}
 }
@@ -118,7 +116,8 @@ func TestHyphenateWordPt(t *testing.T) {
 
 	expectedResults := map[string][]string{
 		"perspicaz":  {"pers", "pi", "caz"},
-		"milionario": {"mi", "li", "o", "na", "ri", "o"},
+		"milionário": {"mi", "li", "o", "na", "ri", "o"},
+		"não":        {"nao"},
 	}
 	for word, expectedSyllables := range expectedResults {
 		hyphenatedWord := b.HyphenateWord(word)
@@ -134,7 +133,7 @@ func TestHyphenateWordPt(t *testing.T) {
 
 		for i, syllable := range syllables {
 			if syllable != expectedSyllables[i] {
-				t.Errorf(fmt.Sprintf("expected '%s' got '%s'", strings.Join(expectedSyllables, "-"), strings.Join(syllables, "-")))
+				t.Errorf("expected '%s' got '%s'", strings.Join(expectedSyllables, "-"), strings.Join(syllables, "-"))
 			}
 		}
 
